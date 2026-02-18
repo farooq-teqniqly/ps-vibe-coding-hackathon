@@ -127,27 +127,26 @@ class RockPaperScissorsGame:
         player2_move: Move,
         result: GameResult,
     ):
-        """Display the result of a round."""
+        """Display the result of a round with side-by-side ASCII art."""
         console.print("\n" + "=" * 50)
 
-        # Show moves
-        moves_table = Table(show_header=False, box=None, padding=(0, 2))
-        moves_table.add_column(justify="center")
-        moves_table.add_column(justify="center")
-        moves_table.add_column(justify="center")
+        # Side-by-side ASCII art: left = player1 name + art, center = VS, right = player2 name + art
+        lines1 = Game.get_move_ascii_art_lines(player1_move)
+        lines2 = Game.get_move_ascii_art_lines(player2_move)
+        width = 20  # fixed width per art block for alignment
+        max_lines = max(len(lines1), len(lines2))
+        while len(lines1) < max_lines:
+            lines1.append("")
+        while len(lines2) < max_lines:
+            lines2.append("")
 
-        moves_table.add_row(
-            f"[bold cyan]{player1_name}[/bold cyan]",
-            "[bold]VS[/bold]",
-            f"[bold yellow]{player2_name}[/bold yellow]",
-        )
-        moves_table.add_row(
-            f"{Game.get_move_emoji(player1_move)} {player1_move}",
-            "⚔️",
-            f"{Game.get_move_emoji(player2_move)} {player2_move}",
-        )
-
-        console.print(moves_table)
+        # Names row (above the art)
+        console.print(f"  [bold cyan]{player1_name}[/bold cyan]     [bold]VS[/bold]     [bold yellow]{player2_name}[/bold yellow]")
+        # Art lines
+        for i in range(max_lines):
+            left = (lines1[i] if i < len(lines1) else "").ljust(width)
+            right = (lines2[i] if i < len(lines2) else "").ljust(width)
+            console.print(f"  {left}     [bold]VS[/bold]     {right}")
 
         # Show result
         if result == GameResult.WIN:
