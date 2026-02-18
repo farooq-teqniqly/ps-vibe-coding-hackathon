@@ -1,0 +1,107 @@
+%% Object relationships - Rock Paper Scissors TUI
+%% Layers: Entrypoint -> TUI/Controller -> Domain -> Persistence
+
+classDiagram
+    direction TB
+
+    %% Entrypoint
+    class play_py <<entrypoint>>
+    play_py : +main()
+
+    %% TUI / Controller
+    class RockPaperScissorsGame <<controller>>
+    RockPaperScissorsGame : -leaderboard Leaderboard
+    RockPaperScissorsGame : -player_name str
+    RockPaperScissorsGame : -player_move_history list
+    RockPaperScissorsGame : -current_ai AIPlayer
+    RockPaperScissorsGame : +main_menu()
+    RockPaperScissorsGame : +play_vs_ai()
+    RockPaperScissorsGame : +play_vs_human()
+    RockPaperScissorsGame : +ai_vs_ai_battle()
+    RockPaperScissorsGame : +ai_tournament()
+    RockPaperScissorsGame : +view_leaderboard()
+    RockPaperScissorsGame : +view_player_stats()
+    RockPaperScissorsGame : +run()
+
+    %% Domain - Game
+    class Move <<enum>>
+    Move : ROCK
+    Move : PAPER
+    Move : SCISSORS
+
+    class GameResult <<enum>>
+    GameResult : WIN
+    GameResult : LOSE
+    GameResult : TIE
+
+    class Game <<static logic>>
+    Game : +determine_winner(Move, Move) GameResult
+    Game : +get_move_emoji(Move) str
+
+    %% Domain - AI
+    class AIPlayer <<abstract>>
+    AIPlayer : +name str
+    AIPlayer : +personality str
+    AIPlayer : +move_history List~Move~
+    AIPlayer : +make_move(opponent_history) Move
+    AIPlayer : +record_move(Move)
+
+    class RandomAI
+    class CycleAI
+    class PatternAI
+    class AdaptiveAI
+    class PsychologicalAI
+
+    %% AI config (data)
+    class AI_OPPONENTS <<list>>
+    AI_OPPONENTS : class, name, personality, difficulty
+
+    %% Persistence - Leaderboard
+    class Leaderboard <<service>>
+    Leaderboard : -data_file str
+    Leaderboard : -entries Dict
+    Leaderboard : +load()
+    Leaderboard : +save()
+    Leaderboard : +record_win(name)
+    Leaderboard : +record_loss(name)
+    Leaderboard : +record_tie(name)
+    Leaderboard : +get_top_players(limit)
+    Leaderboard : +get_player_stats(name)
+
+    class LeaderboardEntry <<domain>>
+    LeaderboardEntry : +player_name str
+    LeaderboardEntry : +wins int
+    LeaderboardEntry : +losses int
+    LeaderboardEntry : +ties int
+    LeaderboardEntry : +total_games property
+    LeaderboardEntry : +win_rate property
+    LeaderboardEntry : +to_dict()
+    LeaderboardEntry : +from_dict()
+
+    %% Database / Storage
+    class leaderboard_json <<file>>
+    leaderboard_json : data/leaderboard.json
+
+    %% Relationships
+    play_py --> RockPaperScissorsGame : calls main()
+    RockPaperScissorsGame --> Leaderboard : uses
+    RockPaperScissorsGame --> Game : uses
+    RockPaperScissorsGame --> AIPlayer : uses create_ai()
+    RockPaperScissorsGame --> Move : uses
+    RockPaperScissorsGame --> GameResult : uses
+
+    Game --> Move : uses
+    Game --> GameResult : returns
+
+    AIPlayer <|-- RandomAI
+    AIPlayer <|-- CycleAI
+    AIPlayer <|-- PatternAI
+    AIPlayer <|-- AdaptiveAI
+    AIPlayer <|-- PsychologicalAI
+    AIPlayer --> Move : uses
+
+    AI_OPPONENTS ..> AIPlayer : create_ai(index)
+
+    Leaderboard --> LeaderboardEntry : contains
+    Leaderboard --> leaderboard_json : load/save
+    LeaderboardEntry --> leaderboard_json : serialized in
