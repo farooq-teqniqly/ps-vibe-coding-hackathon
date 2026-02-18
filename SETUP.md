@@ -1,25 +1,173 @@
 # Setup and Testing Instructions
 
-## Quick Start
+## Installation Instructions by Platform
 
-1. Install dependencies:
+### Windows Installation
 
-   ```bash
-   pip3 install -r requirements.txt
+1. **Install Python** (if not already installed):
+   - Download Python 3.8 or later from [python.org](https://www.python.org/downloads/)
+   - During installation, **check the box** "Add Python to PATH"
+   - Verify installation by opening Command Prompt and running:
+     ```cmd
+     python --version
+     ```
+
+2. **Clone or download the project**:
+   - If using Git:
+     ```cmd
+     git clone <repository-url>
+     cd ps-vibe-coding-hackathon
+     ```
+   - Or download and extract the ZIP file, then navigate to the folder in Command Prompt
+
+3. **Set up a virtual environment** (recommended):
+
+   ```cmd
+   python -m venv venv
+   venv\Scripts\activate
    ```
 
-   Or if you prefer using a virtual environment:
+   - Your prompt should change to show `(venv)` when activated
+   - To deactivate later, run: `deactivate`
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On macOS/Linux
+4. **Install dependencies**:
+
+   ```cmd
    pip install -r requirements.txt
    ```
 
-2. Run the game:
+5. **Run the game**:
+   ```cmd
+   python play.py
+   ```
+
+**Windows Troubleshooting:**
+
+- If `python` command doesn't work, try `py` or `python3`
+- If you see "script execution disabled" errors with PowerShell, use Command Prompt instead
+- For emoji display issues, use Windows Terminal (available in Microsoft Store) instead of the legacy Command Prompt
+
+### macOS Installation
+
+1. **Install Python** (if not already installed):
+   - macOS 10.15+ comes with Python 3, verify with:
+     ```bash
+     python3 --version
+     ```
+   - If needed, install via Homebrew:
+     ```bash
+     brew install python3
+     ```
+   - Or download from [python.org](https://www.python.org/downloads/)
+
+2. **Clone or download the project**:
+
+   ```bash
+   git clone <repository-url>
+   cd ps-vibe-coding-hackathon
+   ```
+
+3. **Set up a virtual environment** (recommended):
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+   - Your prompt should change to show `(venv)` when activated
+   - To deactivate later, run: `deactivate`
+
+4. **Install dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Run the game**:
    ```bash
    python3 play.py
    ```
+
+**macOS Troubleshooting:**
+
+- If you get SSL certificate errors, run: `/Applications/Python\ 3.x/Install\ Certificates.command`
+- Ensure your terminal supports UTF-8 for proper emoji display
+
+### Linux Installation
+
+1. **Install Python** (if not already installed):
+   - **Debian/Ubuntu/Mint:**
+     ```bash
+     sudo apt update
+     sudo apt install python3 python3-pip python3-venv
+     ```
+   - **Fedora/RHEL/CentOS:**
+     ```bash
+     sudo dnf install python3 python3-pip
+     ```
+   - **Arch/Manjaro:**
+     ```bash
+     sudo pacman -S python python-pip
+     ```
+   - Verify installation:
+     ```bash
+     python3 --version
+     ```
+
+2. **Clone or download the project**:
+
+   ```bash
+   git clone <repository-url>
+   cd ps-vibe-coding-hackathon
+   ```
+
+3. **Set up a virtual environment** (recommended):
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+   - Your prompt should change to show `(venv)` when activated
+   - To deactivate later, run: `deactivate`
+
+4. **Install dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+5. **Run the game**:
+   ```bash
+   python3 play.py
+   ```
+
+**Linux Troubleshooting:**
+
+- If `pip` is not found, install it with your package manager (e.g., `sudo apt install python3-pip`)
+- For emoji display, ensure your terminal emulator supports UTF-8 and has a font with emoji support
+- If you get permission errors, don't use `sudo` with pip - use a virtual environment instead
+
+## Quick Start (All Platforms)
+
+Once Python is installed and you're in the project directory:
+
+```bash
+# Create virtual environment
+python3 -m venv venv        # On Linux/macOS
+python -m venv venv         # On Windows
+
+# Activate virtual environment
+source venv/bin/activate    # On Linux/macOS
+venv\Scripts\activate       # On Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the game
+python3 play.py             # On Linux/macOS
+python play.py              # On Windows
+```
 
 ## Testing the Features
 
