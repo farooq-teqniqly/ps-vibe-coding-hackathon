@@ -64,23 +64,63 @@ class CycleAI(AIPlayer):
 
 
 class AdaptiveAI(AIPlayer):
-    """AI that adapts based on what's working."""
+    """AI that adapts based on opponent patterns and adjusts strategy dynamically."""
 
     def __init__(self, name: str, personality: str):
         super().__init__(name, personality)
         self.wins_by_move = {Move.ROCK: 0, Move.PAPER: 0, Move.SCISSORS: 0}
+        self.losses_by_move = {Move.ROCK: 0, Move.PAPER: 0, Move.SCISSORS: 0}
 
     def make_move(self, opponent_history: List[Move]) -> Move:
-        if len(self.move_history) < 3:
+        # Early game: random exploration
+        if len(opponent_history) < 3:
             return random.choice(list(Move))
 
-        # Use the move that has won the most
-        best_move = max(self.wins_by_move.keys(), key=lambda m: self.wins_by_move[m])
-        return best_move
+        # Analyze opponent's recent pattern (last 5-10 moves)
+        recent_window = min(10, len(opponent_history))
+        recent_moves = opponent_history[-recent_window:]
+
+        # Count opponent's recent moves
+        move_counts = {move: recent_moves.count(move) for move in Move}
+
+        # Find opponent's most frequent recent move
+        most_common = max(move_counts.keys(), key=lambda m: move_counts[m])
+
+        # Counter map
+        counters = {
+            Move.ROCK: Move.PAPER,
+            Move.PAPER: Move.SCISSORS,
+            Move.SCISSORS: Move.ROCK,
+        }
+
+        # Calculate success rate for each move
+        success_rates = {}
+        for move in Move:
+            total_uses = self.wins_by_move[move] + self.losses_by_move[move]
+            if total_uses > 0:
+                success_rates[move] = self.wins_by_move[move] / total_uses
+            else:
+                success_rates[move] = 0.5  # Neutral for unused moves
+
+        # Strategy: 70% counter opponent's pattern, 30% use best performing move
+        if random.random() < 0.7:
+            # Counter the opponent's most common recent move
+            return counters[most_common]
+        else:
+            # Use move with best historical success rate
+            best_move = max(success_rates.keys(), key=lambda m: success_rates[m])
+            # Add randomization if success rates are similar (within 10%)
+            if max(success_rates.values()) - min(success_rates.values()) < 0.1:
+                return random.choice(list(Move))
+            return best_move
 
     def record_win(self, winning_move: Move):
         """Record a winning move to adjust strategy."""
         self.wins_by_move[winning_move] += 1
+
+    def record_loss(self, losing_move: Move):
+        """Record a losing move to avoid it."""
+        self.losses_by_move[losing_move] += 1
 
 
 # AI opponents with personalities

@@ -48,12 +48,16 @@ class RockPaperScissorsGame:
 
         menu.add_row("1", "🤖 Play vs AI")
         menu.add_row("2", "👥 Play vs Human (Local)")
-        menu.add_row("3", "🏆 View Leaderboard")
-        menu.add_row("4", "📊 View Your Stats")
-        menu.add_row("5", "👋 Quit")
+        menu.add_row("3", "🤖⚔️🤖 Watch AI vs AI Battle")
+        menu.add_row("4", "🏆🤖 AI Tournament Mode")
+        menu.add_row("5", "🏆 View Leaderboard")
+        menu.add_row("6", "📊 View Your Stats")
+        menu.add_row("7", "👋 Quit")
 
         console.print(menu)
-        choice = Prompt.ask("\nChoose an option", choices=["1", "2", "3", "4", "5"])
+        choice = Prompt.ask(
+            "\nChoose an option", choices=["1", "2", "3", "4", "5", "6", "7"]
+        )
         return choice
 
     def get_player_name(self) -> str:
@@ -412,6 +416,458 @@ class RockPaperScissorsGame:
 
         Prompt.ask("\nPress Enter to continue")
 
+    def ai_vs_ai_battle(self):
+        """Watch two AI opponents battle each other."""
+        console.clear()
+        self.show_title()
+
+        console.print("\n[bold cyan]⚔️  AI vs AI BATTLE ARENA ⚔️[/bold cyan]\n")
+        console.print("[yellow]Select two AI opponents to battle![/yellow]\n")
+
+        # Select first AI
+        console.print("[bold green]🥊 SELECT FIRST PLAYER:[/bold green]")
+        ai1_index = self.select_ai_opponent()
+        ai1 = create_ai(ai1_index)
+        ai1_config = AI_OPPONENTS[ai1_index]
+
+        # Select second AI
+        console.clear()
+        self.show_title()
+        console.print("\n[bold cyan]⚔️  AI vs AI BATTLE ARENA ⚔️[/bold cyan]\n")
+        console.print(
+            f"[green]✓ First Player: {ai1.name} ({ai1_config['difficulty']})[/green]\n"
+        )
+        console.print("[bold yellow]🥊 SELECT SECOND PLAYER:[/bold yellow]")
+        ai2_index = self.select_ai_opponent()
+        ai2 = create_ai(ai2_index)
+        ai2_config = AI_OPPONENTS[ai2_index]
+
+        # Get number of games
+        console.clear()
+        self.show_title()
+        console.print("\n[bold cyan]⚔️  AI vs AI BATTLE ARENA ⚔️[/bold cyan]\n")
+
+        matchup_panel = Panel(
+            f"[bold green]{ai1.name}[/bold green] ({ai1_config['difficulty']})\n"
+            f"     VS\n"
+            f"[bold yellow]{ai2.name}[/bold yellow] ({ai2_config['difficulty']})",
+            title="The Matchup",
+            style="cyan",
+        )
+        console.print(matchup_panel)
+
+        num_games = IntPrompt.ask("\nHow many games should they play?", default=10)
+
+        # Initialize stats
+        ai1_wins = 0
+        ai2_wins = 0
+        ties = 0
+        ai1_history = []
+        ai2_history = []
+
+        # Battle time!
+        console.clear()
+        self.show_title()
+        console.print(f"\n[bold cyan]⚔️  {ai1.name} vs {ai2.name} ⚔️[/bold cyan]\n")
+        console.print("[yellow]Battle commencing...[/yellow]\n")
+        time.sleep(1)
+
+        # Create results table
+        results_display = Table(
+            show_header=True, box=box.ROUNDED, style="cyan", title="Battle Results"
+        )
+        results_display.add_column("Game", justify="center", style="bold", width=6)
+        results_display.add_column(ai1.name, justify="center", style="green")
+        results_display.add_column("Result", justify="center", width=10)
+        results_display.add_column(ai2.name, justify="center", style="yellow")
+        results_display.add_column("Score", justify="center", width=12)
+
+        for game_num in range(1, num_games + 1):
+            # AI 1 makes move
+            ai1_move = ai1.make_move(ai2_history)
+            ai1.record_move(ai1_move)
+            ai1_history.append(ai1_move)
+
+            # AI 2 makes move
+            ai2_move = ai2.make_move(ai1_history)
+            ai2.record_move(ai2_move)
+            ai2_history.append(ai2_move)
+
+            # Determine winner
+            result = Game.determine_winner(ai1_move, ai2_move)
+
+            # Update adaptive AIs
+            if isinstance(ai1, AdaptiveAI):
+                if result == GameResult.WIN:
+                    ai1.record_win(ai1_move)
+            if isinstance(ai2, AdaptiveAI):
+                if result == GameResult.LOSE:  # AI2 won
+                    ai2.record_win(ai2_move)
+
+            # Update scores
+            if result == GameResult.WIN:
+                ai1_wins += 1
+                result_text = "[bold green]WIN[/bold green]"
+            elif result == GameResult.LOSE:
+                ai2_wins += 1
+                result_text = "[bold red]LOSS[/bold red]"
+            else:
+                ties += 1
+                result_text = "[yellow]TIE[/yellow]"
+
+            # Add row to results
+            score_text = f"{ai1_wins}-{ai2_wins}-{ties}"
+            results_display.add_row(
+                f"#{game_num}",
+                f"{Game.get_move_emoji(ai1_move)} {ai1_move}",
+                result_text,
+                f"{Game.get_move_emoji(ai2_move)} {ai2_move}",
+                score_text,
+            )
+
+            # Update display every game
+            console.clear()
+            self.show_title()
+            console.print(f"\n[bold cyan]⚔️  {ai1.name} vs {ai2.name} ⚔️[/bold cyan]\n")
+            console.print(results_display)
+
+            # Show current score prominently
+            score_panel = Panel(
+                f"[bold green]{ai1.name}: {ai1_wins}[/bold green]  |  "
+                f"[bold yellow]{ai2.name}: {ai2_wins}[/bold yellow]  |  "
+                f"Ties: {ties}",
+                title=f"Score After Game {game_num}/{num_games}",
+                style="cyan",
+            )
+            console.print(score_panel)
+
+            # Pause briefly between games (shorter for more games)
+            pause_time = 0.5 if num_games > 20 else 0.8 if num_games > 10 else 1.2
+            time.sleep(pause_time)
+
+        # Final summary
+        console.clear()
+        self.show_title()
+        console.print("\n[bold cyan]⚔️  BATTLE COMPLETE! ⚔️[/bold cyan]\n")
+
+        # Determine winner
+        if ai1_wins > ai2_wins:
+            winner_text = f"[bold green]🎉 {ai1.name} WINS THE BATTLE! 🎉[/bold green]"
+        elif ai2_wins > ai1_wins:
+            winner_text = (
+                f"[bold yellow]🎉 {ai2.name} WINS THE BATTLE! 🎉[/bold yellow]"
+            )
+        else:
+            winner_text = "[bold cyan]🤝 IT'S A DRAW! 🤝[/bold cyan]"
+
+        console.print(Panel(winner_text, style="bold"))
+
+        # Final stats table
+        final_stats = Table(
+            show_header=True, box=box.ROUNDED, style="cyan", title="Final Statistics"
+        )
+        final_stats.add_column("AI Fighter", style="bold")
+        final_stats.add_column("Wins", justify="center")
+        final_stats.add_column("Losses", justify="center")
+        final_stats.add_column("Ties", justify="center")
+        final_stats.add_column("Win Rate", justify="center")
+
+        ai1_total = ai1_wins + ai2_wins + ties
+        ai1_win_rate = (ai1_wins / ai1_total * 100) if ai1_total > 0 else 0
+        ai2_win_rate = (ai2_wins / ai1_total * 100) if ai1_total > 0 else 0
+
+        final_stats.add_row(
+            f"{ai1.name} ({ai1_config['difficulty']})",
+            f"[green]{ai1_wins}[/green]",
+            f"[red]{ai2_wins}[/red]",
+            str(ties),
+            f"{ai1_win_rate:.1f}%",
+        )
+        final_stats.add_row(
+            f"{ai2.name} ({ai2_config['difficulty']})",
+            f"[green]{ai2_wins}[/green]",
+            f"[red]{ai1_wins}[/red]",
+            str(ties),
+            f"{ai2_win_rate:.1f}%",
+        )
+
+        console.print("\n")
+        console.print(final_stats)
+
+        # Fun fact about the battle
+        total_rounds = ai1_wins + ai2_wins + ties
+        if ties > total_rounds * 0.3:
+            console.print(
+                "\n[yellow]💭 These AIs think alike! High number of ties.[/yellow]"
+            )
+        elif abs(ai1_wins - ai2_wins) <= 2:
+            console.print(
+                "\n[yellow]💭 What a close battle! Nearly evenly matched.[/yellow]"
+            )
+        elif ai1_wins > ai2_wins * 2 or ai2_wins > ai1_wins * 2:
+            console.print(
+                "\n[yellow]💭 Complete domination! One AI had the perfect strategy.[/yellow]"
+            )
+
+        console.print(
+            "\n[dim]Note: AI battles are not recorded on the leaderboard.[/dim]"
+        )
+
+        Prompt.ask("\nPress Enter to return to main menu")
+
+    def ai_tournament(self):
+        """Run a round-robin AI tournament."""
+        console.clear()
+        self.show_title()
+
+        console.print("\n[bold cyan]🏆 AI TOURNAMENT MODE 🏆[/bold cyan]\n")
+        console.print(
+            "[yellow]Select AI players to compete in a round-robin tournament![/yellow]"
+        )
+        console.print("[dim]Each AI will play against every other AI.[/dim]\n")
+
+        # Select number of participants
+        num_participants = IntPrompt.ask(
+            "How many AI players should compete?", choices=["2", "3", "4"], default=4
+        )
+
+        # Select AI participants
+        selected_ais = []
+        selected_indices = []
+
+        for i in range(num_participants):
+            console.clear()
+            self.show_title()
+            console.print("\n[bold cyan]🏆 AI TOURNAMENT MODE 🏆[/bold cyan]\n")
+
+            if selected_ais:
+                console.print("[bold green]Selected Players:[/bold green]")
+                for j, ai_info in enumerate(selected_ais, 1):
+                    console.print(f"  {j}. {ai_info['name']} ({ai_info['difficulty']})")
+                console.print()
+
+            console.print(f"[bold yellow]SELECT PLAYER #{i + 1}:[/bold yellow]\n")
+
+            # Show available AIs (excluding already selected)
+            table = Table(show_header=True, box=box.ROUNDED, style="cyan")
+            table.add_column("#", style="bold", width=3)
+            table.add_column("Name", style="bold yellow")
+            table.add_column("Difficulty", style="bold")
+            table.add_column("Personality")
+
+            available_choices = []
+            for idx, ai in enumerate(AI_OPPONENTS):
+                if idx not in selected_indices:
+                    difficulty_color = {
+                        "Easy": "green",
+                        "Medium": "yellow",
+                        "Hard": "red",
+                    }.get(ai["difficulty"], "white")
+                    table.add_row(
+                        str(idx + 1),
+                        ai["name"],
+                        f"[{difficulty_color}]{ai['difficulty']}[/{difficulty_color}]",
+                        ai["personality"],
+                    )
+                    available_choices.append(str(idx + 1))
+
+            console.print(table)
+
+            choice = IntPrompt.ask("\nSelect AI player", choices=available_choices)
+            ai_index = choice - 1
+            selected_indices.append(ai_index)
+            selected_ais.append(AI_OPPONENTS[ai_index])
+
+        # Get number of games per matchup
+        console.clear()
+        self.show_title()
+        console.print("\n[bold cyan]🏆 AI TOURNAMENT MODE 🏆[/bold cyan]\n")
+
+        console.print("[bold green]Tournament Participants:[/bold green]")
+        for i, ai_info in enumerate(selected_ais, 1):
+            console.print(f"  {i}. {ai_info['name']} ({ai_info['difficulty']})")
+        console.print()
+
+        games_per_matchup = IntPrompt.ask("How many games per matchup?", default=10)
+
+        # Calculate total matches
+        total_matches = (num_participants * (num_participants - 1)) // 2
+        total_games = total_matches * games_per_matchup
+
+        console.print(
+            f"\n[yellow]Tournament will consist of {total_matches} matchups ({total_games} total games)[/yellow]"
+        )
+        time.sleep(2)
+
+        # Initialize tournament stats
+        tournament_stats = {}
+        for ai_info in selected_ais:
+            tournament_stats[ai_info["name"]] = {
+                "wins": 0,
+                "losses": 0,
+                "ties": 0,
+                "matches_played": 0,
+            }
+
+        # Run all matchups
+        matchup_num = 0
+        for i in range(len(selected_ais)):
+            for j in range(i + 1, len(selected_ais)):
+                matchup_num += 1
+                ai1_info = selected_ais[i]
+                ai2_info = selected_ais[j]
+
+                # Create AI instances
+                ai1 = create_ai(selected_indices[i])
+                ai2 = create_ai(selected_indices[j])
+
+                console.clear()
+                self.show_title()
+                console.print(
+                    f"\n[bold cyan]🏆 TOURNAMENT - Match {matchup_num}/{total_matches} 🏆[/bold cyan]\n"
+                )
+
+                matchup_panel = Panel(
+                    f"[bold green]{ai1.name}[/bold green] ({ai1_info['difficulty']})\n"
+                    f"     VS\n"
+                    f"[bold yellow]{ai2.name}[/bold yellow] ({ai2_info['difficulty']})",
+                    title="Current Matchup",
+                    style="cyan",
+                )
+                console.print(matchup_panel)
+                console.print("\n[yellow]Playing games...[/yellow]\n")
+                time.sleep(1)
+
+                # Play games for this matchup
+                ai1_wins = 0
+                ai2_wins = 0
+                ties = 0
+                ai1_history = []
+                ai2_history = []
+
+                for game_num in range(games_per_matchup):
+                    # AI 1 makes move
+                    ai1_move = ai1.make_move(ai2_history)
+                    ai1.record_move(ai1_move)
+                    ai1_history.append(ai1_move)
+
+                    # AI 2 makes move
+                    ai2_move = ai2.make_move(ai1_history)
+                    ai2.record_move(ai2_move)
+                    ai2_history.append(ai2_move)
+
+                    # Determine winner
+                    result = Game.determine_winner(ai1_move, ai2_move)
+
+                    # Update adaptive AIs
+                    if isinstance(ai1, AdaptiveAI):
+                        if result == GameResult.WIN:
+                            ai1.record_win(ai1_move)
+                    if isinstance(ai2, AdaptiveAI):
+                        if result == GameResult.LOSE:  # AI2 won
+                            ai2.record_win(ai2_move)
+
+                    # Update scores
+                    if result == GameResult.WIN:
+                        ai1_wins += 1
+                    elif result == GameResult.LOSE:
+                        ai2_wins += 1
+                    else:
+                        ties += 1
+
+                # Update tournament stats
+                tournament_stats[ai1.name]["wins"] += ai1_wins
+                tournament_stats[ai1.name]["losses"] += ai2_wins
+                tournament_stats[ai1.name]["ties"] += ties
+                tournament_stats[ai1.name]["matches_played"] += 1
+
+                tournament_stats[ai2.name]["wins"] += ai2_wins
+                tournament_stats[ai2.name]["losses"] += ai1_wins
+                tournament_stats[ai2.name]["ties"] += ties
+                tournament_stats[ai2.name]["matches_played"] += 1
+
+                # Show matchup result
+                console.print(f"[bold green]{ai1.name}:[/bold green] {ai1_wins} wins")
+                console.print(f"[bold yellow]{ai2.name}:[/bold yellow] {ai2_wins} wins")
+                console.print(f"[dim]Ties: {ties}[/dim]")
+
+                if ai1_wins > ai2_wins:
+                    console.print(
+                        f"\n[bold green]✓ {ai1.name} wins this matchup![/bold green]"
+                    )
+                elif ai2_wins > ai1_wins:
+                    console.print(
+                        f"\n[bold yellow]✓ {ai2.name} wins this matchup![/bold yellow]"
+                    )
+                else:
+                    console.print(f"\n[dim]Draw in this matchup![/dim]")
+
+                time.sleep(2)
+
+        # Display final tournament standings
+        console.clear()
+        self.show_title()
+        console.print("\n[bold cyan]🏆 TOURNAMENT FINAL STANDINGS 🏆[/bold cyan]\n")
+
+        # Sort by wins, then by win rate
+        standings = []
+        for name, stats in tournament_stats.items():
+            total_games = stats["wins"] + stats["losses"] + stats["ties"]
+            win_rate = (stats["wins"] / total_games * 100) if total_games > 0 else 0
+            standings.append(
+                {
+                    "name": name,
+                    "wins": stats["wins"],
+                    "losses": stats["losses"],
+                    "ties": stats["ties"],
+                    "total": total_games,
+                    "win_rate": win_rate,
+                }
+            )
+
+        standings.sort(key=lambda x: (x["wins"], x["win_rate"]), reverse=True)
+
+        # Display standings table
+        standings_table = Table(
+            show_header=True, box=box.ROUNDED, style="cyan", title="Final Standings"
+        )
+        standings_table.add_column("Rank", style="bold", width=6)
+        standings_table.add_column("Player", style="bold yellow")
+        standings_table.add_column("Wins", justify="center", style="green")
+        standings_table.add_column("Losses", justify="center", style="red")
+        standings_table.add_column("Ties", justify="center")
+        standings_table.add_column("Total", justify="center")
+        standings_table.add_column("Win Rate", justify="center")
+
+        for i, player in enumerate(standings, 1):
+            rank_emoji = {1: "🥇", 2: "🥈", 3: "🥉", 4: "4th"}.get(i, f"{i}.")
+            standings_table.add_row(
+                rank_emoji,
+                player["name"],
+                str(player["wins"]),
+                str(player["losses"]),
+                str(player["ties"]),
+                str(player["total"]),
+                f"{player['win_rate']:.1f}%",
+            )
+
+        console.print(standings_table)
+
+        # Announce winner
+        winner = standings[0]
+        console.print(
+            f"\n[bold green]🎉 TOURNAMENT CHAMPION: {winner['name']}! 🎉[/bold green]"
+        )
+        console.print(
+            f"[green]With {winner['wins']} wins and a {winner['win_rate']:.1f}% win rate![/green]"
+        )
+
+        console.print(
+            "\n[dim]Note: Tournament results are not recorded on the leaderboard.[/dim]"
+        )
+
+        Prompt.ask("\nPress Enter to return to main menu")
+
     def run(self):
         """Main game loop."""
         while True:
@@ -423,10 +879,14 @@ class RockPaperScissorsGame:
                 elif choice == "2":
                     self.play_vs_human()
                 elif choice == "3":
-                    self.view_leaderboard()
+                    self.ai_vs_ai_battle()
                 elif choice == "4":
-                    self.view_player_stats()
+                    self.ai_tournament()
                 elif choice == "5":
+                    self.view_leaderboard()
+                elif choice == "6":
+                    self.view_player_stats()
+                elif choice == "7":
                     console.clear()
                     console.print(
                         "\n[bold cyan]Thanks for playing! See you next time! 👋[/bold cyan]\n"
