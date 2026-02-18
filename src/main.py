@@ -500,9 +500,13 @@ class RockPaperScissorsGame:
             if isinstance(ai1, AdaptiveAI):
                 if result == GameResult.WIN:
                     ai1.record_win(ai1_move)
+                elif result == GameResult.LOSE:
+                    ai1.record_loss(ai1_move)
             if isinstance(ai2, AdaptiveAI):
                 if result == GameResult.LOSE:  # AI2 won
                     ai2.record_win(ai2_move)
+                elif result == GameResult.WIN:  # AI2 lost
+                    ai2.record_loss(ai2_move)
 
             # Update scores
             if result == GameResult.WIN:
@@ -763,9 +767,13 @@ class RockPaperScissorsGame:
                     if isinstance(ai1, AdaptiveAI):
                         if result == GameResult.WIN:
                             ai1.record_win(ai1_move)
+                        elif result == GameResult.LOSE:
+                            ai1.record_loss(ai1_move)
                     if isinstance(ai2, AdaptiveAI):
                         if result == GameResult.LOSE:  # AI2 won
                             ai2.record_win(ai2_move)
+                        elif result == GameResult.WIN:  # AI2 lost
+                            ai2.record_loss(ai2_move)
 
                     # Update scores
                     if result == GameResult.WIN:

@@ -123,6 +123,115 @@ class AdaptiveAI(AIPlayer):
         self.losses_by_move[losing_move] += 1
 
 
+class PsychologicalAI(AIPlayer):
+    """AI based on psychological research and mathematical RPS strategy.
+
+    Enhanced with:
+    - Balanced move distribution (uses all 3 moves)
+    - Randomness to avoid predictability
+    - Pattern detection for AI opponents
+    - Adaptive psychological strategy
+
+    Uses proven patterns from research:
+    - People open with Rock 35.4% of the time (males ~50%)
+    - People repeat winning moves
+    - When losing, people tend to play Rock
+    """
+
+    def __init__(self, name: str, personality: str):
+        super().__init__(name, personality)
+        self.opponent_last_result = None  # 'win', 'loss', 'tie', or None
+        self.opponent_last_move = None
+        self.randomness_factor = 0.25  # 25% random moves for unpredictability
+
+    def make_move(self, opponent_history: List[Move]) -> Move:
+        # Counter map
+        counters = {
+            Move.ROCK: Move.PAPER,
+            Move.PAPER: Move.SCISSORS,
+            Move.SCISSORS: Move.ROCK,
+        }
+
+        # Add 25% randomness to avoid being predictable
+        if random.random() < self.randomness_factor:
+            return random.choice(list(Move))
+
+        # First move: Weighted random (favor Paper to counter Rock, most common opening)
+        if len(opponent_history) == 0:
+            # 50% Paper, 30% Scissors, 20% Rock
+            return random.choices(
+                [Move.PAPER, Move.SCISSORS, Move.ROCK], weights=[0.50, 0.30, 0.20]
+            )[0]
+
+        # Get opponent's last move
+        opponent_last = opponent_history[-1]
+
+        # Pattern detection: Look for recent patterns (last 3-5 moves)
+        if len(opponent_history) >= 3:
+            recent_moves = (
+                opponent_history[-5:]
+                if len(opponent_history) >= 5
+                else opponent_history[-3:]
+            )
+            move_counts = {move: recent_moves.count(move) for move in Move}
+            most_common_recent = max(move_counts.keys(), key=lambda m: move_counts[m])
+
+            # If opponent is showing a strong recent pattern (>50% of last moves)
+            if move_counts[most_common_recent] / len(recent_moves) > 0.5:
+                # 60% counter their pattern, 40% use psychological strategy
+                if random.random() < 0.6:
+                    return counters[most_common_recent]
+
+        # Determine opponent's last result if we have history
+        if len(self.move_history) > 0:
+            my_last = self.move_history[-1]
+
+            # Determine if opponent won, lost, or tied last round
+            if opponent_last == my_last:
+                self.opponent_last_result = "tie"
+            elif (
+                (opponent_last == Move.ROCK and my_last == Move.SCISSORS)
+                or (opponent_last == Move.PAPER and my_last == Move.ROCK)
+                or (opponent_last == Move.SCISSORS and my_last == Move.PAPER)
+            ):
+                self.opponent_last_result = "win"
+            else:
+                self.opponent_last_result = "loss"
+
+        # Adaptive psychological strategy with more variety
+        if self.opponent_last_result == "win":
+            # People repeat winning moves - counter with 70% probability
+            if random.random() < 0.7:
+                return counters[opponent_last]
+            else:
+                # 30% play something else for variety
+                alternatives = [m for m in Move if m != counters[opponent_last]]
+                return random.choice(alternatives)
+        elif self.opponent_last_result == "loss":
+            # When losing, people tend to play Rock - counter with weighted choice
+            # 50% Paper (counter Rock), 30% Scissors, 20% Rock
+            return random.choices(
+                [Move.PAPER, Move.SCISSORS, Move.ROCK], weights=[0.50, 0.30, 0.20]
+            )[0]
+        else:
+            # Tie or not enough data: balanced statistical approach
+            # Look at overall opponent pattern if enough history
+            if len(opponent_history) >= 5:
+                move_counts = {move: opponent_history.count(move) for move in Move}
+                most_common = max(move_counts.keys(), key=lambda m: move_counts[m])
+                # 60% counter most common, 40% balanced random
+                if random.random() < 0.6:
+                    return counters[most_common]
+
+            # Default: balanced distribution
+            return random.choice(list(Move))
+
+    def record_move(self, move: Move):
+        """Record a move to history."""
+        super().record_move(move)
+        self.opponent_last_move = move
+
+
 # AI opponents with personalities
 AI_OPPONENTS: List[dict] = [
     {
@@ -148,6 +257,12 @@ AI_OPPONENTS: List[dict] = [
         "name": "Adaptive Ada",
         "personality": "I learn from my mistakes and adapt to crush you!",
         "difficulty": "Hard",
+    },
+    {
+        "class": PsychologicalAI,
+        "name": "Mind Reader Mike",
+        "personality": "I know what you're thinking! Psychology and math are on my side.",
+        "difficulty": "Expert",
     },
 ]
 
