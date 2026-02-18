@@ -20,6 +20,26 @@
 .ai/
 .anthropic/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data files (game data)
+data/leaderboard.json
+
 # User-specific files
 *.rsuser
 *.suo
