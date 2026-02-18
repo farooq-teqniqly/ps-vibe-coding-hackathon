@@ -3,6 +3,23 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# AI Code Assistants - Generated files and folders
+.claude/
+.opencode/
+.crush/
+.copilot/
+.cursor/
+.aider*
+.continue/
+.codeium/
+.tabnine/
+.windsurf/
+*.ai.md
+*.claude.md
+*_ai_generated*
+.ai/
+.anthropic/
+
 # User-specific files
 *.rsuser
 *.suo
