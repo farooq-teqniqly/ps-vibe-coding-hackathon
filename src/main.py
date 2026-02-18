@@ -157,7 +157,7 @@ class RockPaperScissorsGame:
             console.print("\n[bold yellow]🤝 IT'S A TIE![/bold yellow]")
 
         console.print("=" * 50 + "\n")
-        time.sleep(1.5)
+        time.sleep(5)
 
     def play_vs_ai(self):
         """Play against an AI opponent."""
