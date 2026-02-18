@@ -11,6 +11,7 @@ from typing import Optional
 from src.game import Game, Move, GameResult
 from src.ai import AI_OPPONENTS, create_ai, AIPlayer, AdaptiveAI
 from src.leaderboard import Leaderboard
+from src.sounds import play_win, play_lose
 
 
 console = Console()
@@ -148,11 +149,13 @@ class RockPaperScissorsGame:
             right = (lines2[i] if i < len(lines2) else "").ljust(width)
             console.print(f"  {left}     [bold]VS[/bold]     {right}")
 
-        # Show result
+        # Show result and play sound (from player1's perspective)
         if result == GameResult.WIN:
             console.print(f"\n[bold green]🎉 {player1_name} WINS![/bold green]")
+            play_win()
         elif result == GameResult.LOSE:
             console.print(f"\n[bold red]😢 {player2_name} WINS![/bold red]")
+            play_lose()
         else:
             console.print("\n[bold yellow]🤝 IT'S A TIE![/bold yellow]")
 
